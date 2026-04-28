@@ -107,6 +107,7 @@ async def get_click_analytics(bitlink: str) -> dict[str, Any]:
 
     # Get local click data from our database
     total_clicks = await database.get_click_count(code, period="30d")
+    unique_visitors = await database.get_unique_visitors_count(code, period="30d")
     clicks_over_time = await database.get_clicks_over_time(code, period="7d")
     
     # Format clicks_by_day to match expected API output format
@@ -123,6 +124,7 @@ async def get_click_analytics(bitlink: str) -> dict[str, Any]:
     result = {
         "bitlink": clean_bitlink,
         "total_clicks": total_clicks,
+        "unique_visitors": unique_visitors,
         "clicks_by_day": clicks_by_day,
         "unit": "day",
         "period": "last 30 days (summary) / last 7 days (daily)",

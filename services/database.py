@@ -378,7 +378,16 @@ class Database:
         return await self.db.clicks.count_documents({
             "code": code,
             "timestamp": {"$gte": since},
-        }) - 1
+        })
+
+    async def get_unique_visitors_count(self, code: str, period: str = "7d") -> int:
+        """Get total unique visitors (by IP) for a code within a period."""
+        since = datetime.now(timezone.utc) - self._period_to_timedelta(period)
+        unique_ips = await self.db.clicks.distinct("ip", {
+            "code": code,
+            "timestamp": {"$gte": since},
+        })
+        return len(unique_ips)
 
     async def get_clicks_over_time(
         self, code: str, period: str = "7d"

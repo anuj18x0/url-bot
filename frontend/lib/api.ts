@@ -10,6 +10,7 @@ const API_BASE = process.env.NEXT_PUBLIC_API_URL || "http://localhost:8000";
 export interface AnalyticsData {
   bitlink: string;
   total_clicks: number;
+  unique_visitors?: number;
   clicks_by_day: { date: string; clicks: number }[];
   unit: string;
   period: string;

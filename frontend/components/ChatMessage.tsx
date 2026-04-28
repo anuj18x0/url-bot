@@ -39,7 +39,7 @@ function MiniBarChart({ data }: { data: { date: string; clicks: number }[] }) {
             <Tooltip>
               <TooltipTrigger asChild>
                 <motion.div
-                  className="flex min-w-[18px] flex-1 flex-col items-center gap-1"
+                  className="flex w-8 flex-col items-center gap-1"
                   initial={{ scaleY: 0 }}
                   animate={{ scaleY: 1 }}
                   transition={{ delay: i * 0.06, duration: 0.4 }}
@@ -49,12 +49,8 @@ function MiniBarChart({ data }: { data: { date: string; clicks: number }[] }) {
                     {d.clicks}
                   </span>
                   <div
-                    className="w-full rounded-sm"
-                    style={{
-                      height,
-                      background:
-                        "linear-gradient(to top, oklch(0.65 0.25 270), oklch(0.72 0.2 310))",
-                    }}
+                    className="w-full rounded-sm bg-foreground/80"
+                    style={{ height }}
                   />
                   <span className="text-[8px] text-muted-foreground/60">
                     {label}
@@ -84,11 +80,21 @@ function AnalyticsCard({ analytics }: { analytics: AnalyticsData }) {
         </Badge>
       </div>
       <Separator className="my-2" />
-      <div className="flex items-baseline gap-1">
-        <span className="text-2xl font-bold tabular-nums">
-          {analytics.total_clicks.toLocaleString()}
-        </span>
-        <span className="text-xs text-muted-foreground">total clicks</span>
+      <div className="flex items-baseline gap-4">
+        <div className="flex items-baseline gap-1">
+          <span className="text-2xl font-bold tabular-nums">
+            {analytics.total_clicks.toLocaleString()}
+          </span>
+          <span className="text-xs text-muted-foreground">total clicks</span>
+        </div>
+        {analytics.unique_visitors !== undefined && (
+          <div className="flex items-baseline gap-1">
+            <span className="text-lg font-semibold tabular-nums text-muted-foreground">
+              {analytics.unique_visitors.toLocaleString()}
+            </span>
+            <span className="text-[10px] text-muted-foreground/70">unique</span>
+          </div>
+        )}
       </div>
       {analytics.clicks_by_day && analytics.clicks_by_day.length > 0 && (
         <MiniBarChart data={analytics.clicks_by_day} />
