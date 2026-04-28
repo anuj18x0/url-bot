@@ -7,35 +7,38 @@ for semantic retrieval.
 """
 
 from typing import Any
-from sentence_transformers import SentenceTransformer
+import os
+from google import genai
 from services.database import database
 
 
 class MemoryStore:
     """
     Persistent vector memory store using MongoDB Atlas Vector Search.
+    Uses Gemini API for lightweight text embeddings.
     """
 
-    def __init__(self, model_name: str = "all-MiniLM-L6-v2"):
+    def __init__(self, model_name: str = "gemini-embedding-001"):
         self._model_name = model_name
-        self._model: SentenceTransformer | None = None
+        self._client = None
 
-    def initialize(self):
-        """Pre-load the embedding model (called at startup)."""
-        if self._model is None:
-            print("⏳ Loading embedding model...")
-            self._model = SentenceTransformer(self._model_name)
-            print(f"✅ Embedding model loaded")
+    def _ensure_client(self):
+        if self._client is None:
+            api_key = os.getenv("GEMINI_API_KEY")
+            if not api_key:
+                raise ValueError("GEMINI_API_KEY environment variable is not set")
+            self._client = genai.Client(api_key=api_key)
 
-    def _ensure_model(self):
-        if self._model is None:
-            self.initialize()
-
-    def generate_embedding(self, text: str) -> list[float]:
-        """Generate a vector embedding for a given text."""
-        self._ensure_model()
-        embedding = self._model.encode([text])[0]
-        return embedding.tolist()
+    async def generate_embedding(self, text: str) -> list[float]:
+        """Generate a vector embedding for a given text using Gemini API."""
+        self._ensure_client()
+        # The new SDK provides async support via aio
+        response = await self._client.aio.models.embed_content(
+            model=self._model_name, 
+            contents=text
+        )
+        # response.embeddings is a list, we take the first item's values
+        return response.embeddings[0].values
 
     async def retrieve_relevant(
         self, session_id: str, query: str, top_k: int = 3
@@ -43,8 +46,7 @@ class MemoryStore:
         """
         Retrieve the most relevant past messages for a query using MongoDB.
         """
-        self._ensure_model()
-        query_embedding = self.generate_embedding(query)
+        query_embedding = await self.generate_embedding(query)
         
         # Use our new database method for vector search
         return await database.search_relevant_messages(

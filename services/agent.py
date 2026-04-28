@@ -291,8 +291,8 @@ async def run_agent(
         result_data["reply"] = response.text or "I'm not sure how to help with that."
 
     # Step 5: Generate embeddings for persistence
-    user_embedding = memory_store.generate_embedding(user_message)
-    reply_embedding = memory_store.generate_embedding(result_data["reply"])
+    user_embedding = await memory_store.generate_embedding(user_message)
+    reply_embedding = await memory_store.generate_embedding(result_data["reply"])
 
     # Step 6: Persist to MongoDB with vectors
     await database.save_message(

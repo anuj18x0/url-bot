@@ -41,14 +41,13 @@ async def create_tracker(
     while await database.find_tracking_link(code):
         code = _generate_code()
 
-    # Create the link record (path_type "A" remains as default for compatibility)
+    # Create the link record
     await database.create_tracking_link(
         code=code,
         target_url=original_url,
         original_url=original_url,
         bitly_url="",  # Will be updated after Bitly shortening
         user_id=user_id,
-        path_type="A",
     )
 
     tracker_url = f"{base_url}/t/{code}"

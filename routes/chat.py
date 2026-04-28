@@ -34,7 +34,6 @@ class ChatResponse(BaseModel):
     long_url: str | None = None
     qr_code_base64: str | None = None
     analytics: AnalyticsData | None = None
-    tracking: dict | None = None
 
 
 @router.post("/chat", response_model=ChatResponse)
@@ -75,7 +74,6 @@ async def chat(request: ChatRequest, req: Request):
             "short_url": result.get("short_url"),
             "long_url": result.get("long_url"),
             "qr_code_base64": result.get("qr_code_base64"),
-            "tracking": result.get("tracking"),
         }
 
         # Include analytics if present
