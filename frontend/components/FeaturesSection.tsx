@@ -16,21 +16,18 @@ const features = [
     title: "AI Agent Intelligence",
     description:
       "Not just a chatbot — a full agent that decides when to call APIs, fetch analytics, or respond conversationally.",
-    gradient: "from-violet-500/10 to-purple-500/10",
   },
   {
     icon: LinkIcon,
     title: "Real Bitly Integration",
     description:
       "Creates genuine Bitly short links with QR codes. No fake shorteners — production-ready links you can share instantly.",
-    gradient: "from-blue-500/10 to-cyan-500/10",
   },
   {
     icon: BarChart3Icon,
     title: "Click Analytics",
     description:
       "Track link performance with real-time click data. Ask the agent and get beautiful analytics breakdowns.",
-    gradient: "from-rose-500/10 to-pink-500/10",
   },
 ];
 
@@ -83,9 +80,9 @@ export function FeaturesSection() {
               <Card className="group relative h-full transition-shadow duration-300 hover:shadow-md">
                 <CardHeader>
                   <div
-                    className={`mb-2 flex size-10 items-center justify-center rounded-lg bg-gradient-to-br ${feature.gradient}`}
+                    className="mb-2 flex size-10 items-center justify-center rounded-lg bg-foreground text-background"
                   >
-                    <feature.icon className="size-5 text-foreground/70" />
+                    <feature.icon className="size-5" />
                   </div>
                   <CardTitle className="text-base">{feature.title}</CardTitle>
                   <CardDescription className="leading-relaxed">

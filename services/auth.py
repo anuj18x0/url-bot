@@ -86,8 +86,8 @@ def set_auth_cookie(response: Any, token: str) -> None:
         key=COOKIE_NAME,
         value=token,
         httponly=True,
-        secure=False,  # Set True in production (HTTPS)
-        samesite="lax",
+        secure=True,
+        samesite="none",
         max_age=JWT_EXPIRY_DAYS * 24 * 3600,
         path="/",
     )
@@ -98,7 +98,7 @@ def clear_auth_cookie(response: Any) -> None:
     response.delete_cookie(
         key=COOKIE_NAME,
         httponly=True,
-        secure=False,
-        samesite="lax",
+        secure=True,
+        samesite="none",
         path="/",
     )

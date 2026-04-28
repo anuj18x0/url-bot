@@ -115,7 +115,7 @@ export default function LoginPage() {
 
         {/* Footer */}
         <p className="relative z-10 text-xs text-background/30">
-          Built with Next.js, FastAPI, Gemini AI & Bitly
+          Built with Next.js, FastAPI & Bitly
         </p>
       </div>
 

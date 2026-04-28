@@ -18,7 +18,7 @@ import {
   LayoutDashboardIcon,
   LogInIcon,
 } from "lucide-react";
-import { getMe } from "@/lib/auth";
+import { getMe, logout } from "@/lib/auth";
 import type { User } from "@/lib/auth";
 
 export default function Page() {
@@ -29,10 +29,15 @@ export default function Page() {
     getMe().then((u) => setUser(u));
   }, []);
 
+  const handleLogout = async () => {
+    await logout();
+    setUser(null);
+  };
+
   return (
     <main className="relative min-h-screen overflow-hidden">
       {/* Nav bar */}
-      <nav className="absolute left-0 right-0 top-0 z-20 flex items-center justify-between px-6 py-4">
+      <nav className="absolute left-0 right-0 top-0 z-20 mx-4 mt-6 flex items-center justify-between rounded-xl bg-transparent px-6 py-4 max-w-7xl xl:mx-auto">
         <div className="flex items-center gap-2">
           <div className="flex size-8 items-center justify-center rounded-lg bg-primary text-primary-foreground">
             <SparklesIcon className="size-4" />
@@ -41,12 +46,22 @@ export default function Page() {
         </div>
         <div className="flex items-center gap-2">
           {user ? (
-            <Link href="/dashboard">
-              <Button variant="outline" size="sm" className="gap-1.5 text-xs">
-                <LayoutDashboardIcon className="size-3.5" />
-                Dashboard
+            <>
+              <Link href="/dashboard">
+                <Button variant="outline" size="sm" className="gap-1.5 text-xs">
+                  <LayoutDashboardIcon className="size-3.5" />
+                  Dashboard
+                </Button>
+              </Link>
+              <Button
+                variant="ghost"
+                size="sm"
+                className="gap-1.5 text-xs text-muted-foreground hover:text-foreground"
+                onClick={handleLogout}
+              >
+                Logout
               </Button>
-            </Link>
+            </>
           ) : (
             <Link href="/login">
               <Button variant="outline" size="sm" className="gap-1.5 text-xs">
@@ -140,7 +155,7 @@ export default function Page() {
       {/* Footer */}
       <footer className="px-6 py-10 text-center">
         <p className="text-xs text-muted-foreground">
-          Built with Next.js, FastAPI, Gemini AI & Bitly •{" "}
+          Built with Next.js, FastAPI & Bitly •{" "}
           <span className="text-foreground/60">LinkBot</span>
         </p>
       </footer>
