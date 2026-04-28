@@ -83,12 +83,12 @@ function LinkRow({
   index: number;
   onViewAnalytics?: (code: string) => void;
 }) {
-  const [copied, setCopied] = useState(false);
+  const [copied, setCopied] = useState<string | null>(null);
 
-  const handleCopy = async () => {
-    await navigator.clipboard.writeText(link.tracker_url);
-    setCopied(true);
-    setTimeout(() => setCopied(false), 2000);
+  const handleCopy = async (url: string) => {
+    await navigator.clipboard.writeText(url);
+    setCopied(url);
+    setTimeout(() => setCopied(null), 2000);
   };
 
   const truncate = (str: string, max: number) =>
@@ -114,35 +114,66 @@ function LinkRow({
         </a>
       </td>
       <td className="px-4 py-2.5">
-        <div className="flex items-center gap-1.5">
-          <a
-            href={link.tracker_url}
-            target="_blank"
-            rel="noopener noreferrer"
-            className="font-mono text-primary hover:underline"
-          >
-            {truncate(link.tracker_url, 30)}
-          </a>
-          <TooltipProvider>
-            <Tooltip>
-              <TooltipTrigger asChild>
-                <Button
-                  variant="ghost"
-                  size="icon-xs"
-                  onClick={handleCopy}
-                >
-                  {copied ? (
-                    <CheckIcon className="size-3 text-emerald-500" />
-                  ) : (
-                    <CopyIcon className="size-3" />
-                  )}
-                </Button>
-              </TooltipTrigger>
-              <TooltipContent>
-                {copied ? "Copied!" : "Copy tracker URL"}
-              </TooltipContent>
-            </Tooltip>
-          </TooltipProvider>
+        <div className="flex flex-col gap-2">
+          {/* Tracker Link */}
+          <div className="flex items-center gap-1.5">
+            <Badge variant="outline" className="text-[9px] px-1 py-0 h-4">Internal</Badge>
+            <a
+              href={link.tracker_url}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="font-mono text-primary hover:underline"
+            >
+              {truncate(link.tracker_url.replace(/^https?:\/\//, ''), 28)}
+            </a>
+            <TooltipProvider>
+              <Tooltip>
+                <TooltipTrigger asChild>
+                  <Button variant="ghost" size="icon-xs" onClick={() => handleCopy(link.tracker_url)}>
+                    {copied === link.tracker_url ? (
+                      <CheckIcon className="size-3 text-emerald-500" />
+                    ) : (
+                      <CopyIcon className="size-3" />
+                    )}
+                  </Button>
+                </TooltipTrigger>
+                <TooltipContent>
+                  {copied === link.tracker_url ? "Copied!" : "Copy internal tracker"}
+                </TooltipContent>
+              </Tooltip>
+            </TooltipProvider>
+          </div>
+
+          {/* Bitly Link */}
+          {link.bitly_url && (
+            <div className="flex items-center gap-1.5">
+              <Badge variant="secondary" className="text-[9px] px-1 py-0 h-4 bg-primary/10 text-primary">Bitly</Badge>
+              <a
+                href={link.bitly_url}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="font-mono text-muted-foreground hover:text-foreground hover:underline"
+              >
+                {truncate(link.bitly_url.replace(/^https?:\/\//, ''), 28)}
+              </a>
+              <TooltipProvider>
+                <Tooltip>
+                  <TooltipTrigger asChild>
+                    <Button variant="ghost" size="icon-xs" onClick={() => handleCopy(link.bitly_url)}>
+                      {copied === link.bitly_url ? (
+                        <CheckIcon className="size-3 text-emerald-500" />
+                      ) : (
+                        <CopyIcon className="size-3" />
+                      )}
+                    </Button>
+                  </TooltipTrigger>
+                  <TooltipContent>
+                    {copied === link.bitly_url ? "Copied!" : "Copy Bitly link"}
+                  </TooltipContent>
+                </Tooltip>
+              </TooltipProvider>
+            </div>
+          )}
         </div>
       </td>
 
