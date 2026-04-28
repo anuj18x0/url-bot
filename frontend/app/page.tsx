@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from "react";
 import Link from "next/link";
+import { useRouter } from "next/navigation";
 import { HeroSection } from "@/components/HeroSection";
 import { FeaturesSection } from "@/components/FeaturesSection";
 import { ChatWidget } from "@/components/ChatWidget";
@@ -24,10 +25,15 @@ import type { User } from "@/lib/auth";
 export default function Page() {
   const [isChatOpen, setIsChatOpen] = useState(false);
   const [user, setUser] = useState<User | null>(null);
+  const router = useRouter();
 
   useEffect(() => {
     getMe().then((u) => setUser(u));
   }, []);
+
+  const handleOpenChat = () => {
+    setIsChatOpen(true);
+  };
 
   const handleLogout = async () => {
     await logout();
@@ -74,7 +80,7 @@ export default function Page() {
       </nav>
 
       {/* Hero */}
-      <HeroSection onOpenChat={() => setIsChatOpen(true)} />
+      <HeroSection onOpenChat={handleOpenChat} />
 
       {/* Features */}
       <FeaturesSection />
@@ -164,6 +170,7 @@ export default function Page() {
       <ChatWidget
         isOpen={isChatOpen}
         onToggle={() => setIsChatOpen((prev) => !prev)}
+        user={user}
       />
     </main>
   );

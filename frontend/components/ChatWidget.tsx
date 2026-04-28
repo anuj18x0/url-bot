@@ -16,13 +16,16 @@ import {
 import { ChatMessage, TypingIndicator } from "@/components/ChatMessage";
 import { sendChatMessage } from "@/lib/api";
 import type { ChatMessage as ChatMessageType } from "@/lib/api";
+import type { User } from "@/lib/auth";
+import Link from "next/link";
 
 interface ChatWidgetProps {
   isOpen: boolean;
   onToggle: () => void;
+  user?: User | null;
 }
 
-export function ChatWidget({ isOpen, onToggle }: ChatWidgetProps) {
+export function ChatWidget({ isOpen, onToggle, user }: ChatWidgetProps) {
   const [messages, setMessages] = useState<ChatMessageType[]>([]);
   const [input, setInput] = useState("");
   const [isLoading, setIsLoading] = useState(false);
@@ -204,27 +207,42 @@ export function ChatWidget({ isOpen, onToggle }: ChatWidgetProps) {
               {error && (
                 <p className="mb-2 text-[11px] text-destructive">{error}</p>
               )}
-              <div className="flex gap-2">
-                <Input
-                  ref={inputRef}
-                  value={input}
-                  onChange={(e) => setInput(e.target.value)}
-                  onKeyDown={handleKeyDown}
-                  placeholder="Ask me anything or paste a URL..."
-                  disabled={isLoading}
-                  className="flex-1 text-[13px]"
-                />
-                <Button
-                  size="icon"
-                  onClick={handleSend}
-                  disabled={!input.trim() || isLoading}
-                >
-                  <SendIcon className="size-4" />
-                </Button>
-              </div>
-              <p className="mt-2 text-center text-[10px] text-muted-foreground/50">
-                Try: &quot;shorten https://github.com&quot; or &quot;what is URL shortening?&quot;
-              </p>
+              {user ? (
+                <>
+                  <div className="flex gap-2">
+                    <Input
+                      ref={inputRef}
+                      value={input}
+                      onChange={(e) => setInput(e.target.value)}
+                      onKeyDown={handleKeyDown}
+                      placeholder="Ask me anything or paste a URL..."
+                      disabled={isLoading}
+                      className="flex-1 text-[13px]"
+                    />
+                    <Button
+                      size="icon"
+                      onClick={handleSend}
+                      disabled={!input.trim() || isLoading}
+                    >
+                      <SendIcon className="size-4" />
+                    </Button>
+                  </div>
+                  <p className="mt-2 text-center text-[10px] text-muted-foreground/50">
+                    Try: &quot;shorten https://github.com&quot; or &quot;what is URL shortening?&quot;
+                  </p>
+                </>
+              ) : (
+                <div className="flex flex-col items-center justify-center py-2 text-center">
+                  <p className="mb-3 text-xs text-muted-foreground">
+                    You must be logged in to chat with LinkBot.
+                  </p>
+                  <Link href="/login" className="w-full">
+                    <Button className="w-full text-xs" size="sm">
+                      Log in to chat
+                    </Button>
+                  </Link>
+                </div>
+              )}
             </div>
           </motion.div>
         )}

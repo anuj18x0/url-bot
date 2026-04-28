@@ -9,6 +9,7 @@ for semantic retrieval.
 from typing import Any
 import os
 from google import genai
+from google.genai import types
 from services.database import database
 
 
@@ -35,7 +36,8 @@ class MemoryStore:
         # The new SDK provides async support via aio
         response = await self._client.aio.models.embed_content(
             model=self._model_name, 
-            contents=text
+            contents=text,
+            config=types.EmbedContentConfig(output_dimensionality=384)
         )
         # response.embeddings is a list, we take the first item's values
         return response.embeddings[0].values

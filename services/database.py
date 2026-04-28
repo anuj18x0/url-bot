@@ -287,6 +287,25 @@ class Database:
             "created_at": datetime.now(timezone.utc),
         })
 
+    async def find_tracking_link_by_bitly_url(self, bitly_url: str) -> dict | None:
+        """Look up a tracking link by its Bitly URL."""
+        # Normalize to ensure we can match with or without https://
+        clean_url = bitly_url.replace("http://", "").replace("https://", "")
+        
+        # Use regex to match the end of the URL to handle protocol differences
+        doc = await self.db.tracking_links.find_one({
+            "bitly_url": {"$regex": f"{clean_url}$"}
+        })
+        if not doc:
+            return None
+        return {
+            "code": doc["code"],
+            "target_url": doc["target_url"],
+            "original_url": doc["original_url"],
+            "bitly_url": doc["bitly_url"],
+            "user_id": doc.get("user_id"),
+        }
+
     async def find_tracking_link(self, code: str) -> dict | None:
         """Look up a tracking link by code."""
         doc = await self.db.tracking_links.find_one({"code": code})
@@ -359,7 +378,7 @@ class Database:
         return await self.db.clicks.count_documents({
             "code": code,
             "timestamp": {"$gte": since},
-        })
+        }) - 1
 
     async def get_clicks_over_time(
         self, code: str, period: str = "7d"

@@ -11,6 +11,7 @@ import httpx
 from dotenv import load_dotenv
 
 from services.cache import url_cache, analytics_cache
+from services.database import database
 
 load_dotenv()
 
@@ -75,62 +76,57 @@ async def shorten_url(long_url: str) -> dict[str, Any]:
 
 async def get_click_analytics(bitlink: str) -> dict[str, Any]:
     """
-    Fetch click analytics for a Bitly short link.
+    Fetch click analytics from our internal database instead of Bitly.
+    The free tier of Bitly no longer supports the /clicks endpoint.
 
     Args:
-        bitlink: The Bitly short link ID (e.g., 'bit.ly/abc123').
+        bitlink: The Bitly short link ID (e.g., 'bit.ly/abc123') or our internal tracker code.
 
     Returns:
         Dictionary with 'total_clicks' and 'clicks_by_day' data.
     """
     # Clean up the bitlink - remove protocol if present
-    bitlink = bitlink.replace("https://", "").replace("http://", "")
+    clean_bitlink = bitlink.replace("https://", "").replace("http://", "")
 
     # Check analytics cache (5 min TTL)
-    cached = analytics_cache.get(bitlink)
+    cached = analytics_cache.get(clean_bitlink)
     if cached:
         return cached
 
-    async with httpx.AsyncClient(timeout=15.0) as client:
-        # Get click summary
-        summary_response = await client.get(
-            f"{BITLY_BASE_URL}/bitlinks/{bitlink}/clicks/summary",
-            headers=_get_headers(),
-            params={"unit": "day", "units": 30},
-        )
+    # Find the tracker code associated with this bitlink
+    tracker = await database.find_tracking_link_by_bitly_url(clean_bitlink)
+    
+    # If the user passed our internal code directly instead of the bitly url
+    if not tracker:
+        tracker = await database.find_tracking_link(clean_bitlink)
+        
+    if not tracker:
+        raise ValueError(f"Could not find internal tracking record for '{bitlink}'")
 
-        # Get detailed clicks by day
-        clicks_response = await client.get(
-            f"{BITLY_BASE_URL}/bitlinks/{bitlink}/clicks",
-            headers=_get_headers(),
-            params={"unit": "day", "units": 7},
-        )
+    code = tracker["code"]
 
-        if summary_response.status_code != 200:
-            if summary_response.status_code == 404:
-                raise ValueError(f"Bitlink '{bitlink}' not found")
-            raise RuntimeError(
-                f"Bitly API error ({summary_response.status_code}): {summary_response.text}"
-            )
+    # Get local click data from our database
+    total_clicks = await database.get_click_count(code, period="30d")
+    clicks_over_time = await database.get_clicks_over_time(code, period="7d")
+    
+    # Format clicks_by_day to match expected API output format
+    clicks_by_day = []
+    for entry in clicks_over_time:
+        # entry["date"] is like "2023-10-25T14:30:00"
+        # We just need the date part "2023-10-25T00:00:00Z"
+        date_str = entry["date"].split("T")[0] + "T00:00:00Z"
+        clicks_by_day.append({
+            "date": date_str,
+            "clicks": entry["clicks"],
+        })
 
-        summary_data = summary_response.json()
-        total_clicks = summary_data.get("total_clicks", 0)
-
-        clicks_by_day = []
-        if clicks_response.status_code == 200:
-            clicks_data = clicks_response.json()
-            for entry in clicks_data.get("link_clicks", []):
-                clicks_by_day.append({
-                    "date": entry.get("date", ""),
-                    "clicks": entry.get("clicks", 0),
-                })
-
-        result = {
-            "bitlink": bitlink,
-            "total_clicks": total_clicks,
-            "clicks_by_day": clicks_by_day,
-            "unit": "day",
-            "period": "last 30 days (summary) / last 7 days (daily)",
-        }
-        analytics_cache.set(bitlink, result)  # Cache for 5 min
-        return result
+    result = {
+        "bitlink": clean_bitlink,
+        "total_clicks": total_clicks,
+        "clicks_by_day": clicks_by_day,
+        "unit": "day",
+        "period": "last 30 days (summary) / last 7 days (daily)",
+    }
+    
+    analytics_cache.set(clean_bitlink, result)  # Cache for 5 min
+    return result
