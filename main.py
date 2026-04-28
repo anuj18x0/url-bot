@@ -23,16 +23,9 @@ load_dotenv()
 async def lifespan(app: FastAPI):
     """Application lifespan: startup and shutdown events."""
     # Startup: pre-load the embedding model so first request isn't slow
-    from services.memory import memory_store
     from services.database import database
-
-    memory_store.initialize()
-    print("✅ Memory store initialized")
-
     await database.connect()
-
     yield
-
     # Shutdown: cleanup
     await database.disconnect()
     print("👋 Shutting down")
